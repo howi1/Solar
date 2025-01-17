@@ -1,0 +1,62 @@
+#include <Servo.h> // Include the Servo library to control servo motors
+
+// Define analog pins for the Light Dependent Resistors (LDRs)
+#define LDR1_H A0 // LDR1 for horizontal direction
+#define LDR2_H A1 // LDR2 for horizontal direction
+#define LDR1_V A2 // LDR1 for vertical direction
+#define LDR2_V A3 // LDR2 for vertical direction
+
+#define error 20 // Define a threshold for acceptable light difference
+
+// Initialize servo positions
+int H_Spoint = 90; // Initial horizontal servo position (centered)
+int V_Spoint = 90; // Initial vertical servo position (centered)
+
+Servo servoH; // Servo object for horizontal movement
+Servo servoV; // Servo object for vertical movement
+
+void setup() {
+  servoH.attach(11); // Attach horizontal servo to pin 11
+  servoV.attach(10); // Attach vertical servo to pin 10
+  servoH.write(H_Spoint); // Move horizontal servo to the initial position
+  servoV.write(V_Spoint); // Move vertical servo to the initial position
+  delay(1000); // Allow the servos to stabilize
+}
+
+void loop() {
+  // Read light intensity values from the LDRs
+  int ldr1_h = analogRead(LDR1_H);
+  int ldr2_h = analogRead(LDR2_H);
+  int ldr1_v = analogRead(LDR1_V);
+  int ldr2_v = analogRead(LDR2_V);
+
+  // Calculate absolute differences between the LDR readings
+  int value1_h = abs(ldr1_h - ldr2_h); // Horizontal light difference
+  int value2_h = abs(ldr2_h - ldr1_h); // Horizontal light difference (redundant)
+  int value1_v = abs(ldr1_v - ldr2_v); // Vertical light difference
+  int value2_v = abs(ldr2_v - ldr1_v); // Vertical light difference (redundant)
+
+  // Adjust horizontal servo position if the light difference exceeds the threshold
+  if ((value1_h > error) && (value2_h > error)) {
+    if (ldr1_h > ldr2_h) {
+      H_Spoint = --H_Spoint; // Decrease horizontal servo angle
+    }
+    if (ldr1_h < ldr2_h) {
+      H_Spoint = ++H_Spoint; // Increase horizontal servo angle
+    }
+  }
+  servoH.write(H_Spoint); // Move the horizontal servo to the new position
+  delay(20); // Allow time for servo to move
+
+  // Adjust vertical servo position if the light difference exceeds the threshold
+  if ((value1_v > error) && (value2_v > error)) {
+    if (ldr1_v > ldr2_v) {
+      V_Spoint = --V_Spoint; // Decrease vertical servo angle
+    }
+    if (ldr1_v < ldr2_v) {
+      V_Spoint = ++V_Spoint; // Increase vertical servo angle
+    }
+  }
+  servoV.write(V_Spoint); // Move the vertical servo to the new position
+  delay(20); // Allow time for servo to move
+}
